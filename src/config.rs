@@ -296,6 +296,8 @@ pub struct PeerConfig {
     #[serde(flatten)]
     pub view_only: ViewOnly,
     #[serde(flatten)]
+    pub show_my_cursor: ShowMyCursor,
+    #[serde(flatten)]
     pub sync_init_clipboard: SyncInitClipboard,
     // Mouse wheel or touchpad scroll mode
     #[serde(
@@ -372,6 +374,7 @@ impl Default for PeerConfig {
             follow_remote_window: Default::default(),
             keyboard_mode: Default::default(),
             view_only: Default::default(),
+            show_my_cursor: Default::default(),
             reverse_mouse_wheel: Self::default_reverse_mouse_wheel(),
             displays_as_individual_windows: Self::default_displays_as_individual_windows(),
             use_all_my_displays_for_the_remote_session:
@@ -955,7 +958,9 @@ impl Config {
     }
 
     pub fn no_register_device() -> bool {
-        BUILTIN_SETTINGS.read().unwrap()
+        BUILTIN_SETTINGS
+            .read()
+            .unwrap()
             .get(keys::OPTION_REGISTER_DEVICE)
             .map(|v| v == "N")
             .unwrap_or(false)
@@ -1676,6 +1681,13 @@ serde_field_bool!(
     "view_only",
     default_view_only,
     "ViewOnly::default_view_only"
+);
+
+serde_field_bool!(
+    ShowMyCursor,
+    "show_my_cursor",
+    default_show_my_cursor,
+    "ShowMyCursor::default_show_my_cursor"
 );
 
 serde_field_bool!(
@@ -2465,6 +2477,7 @@ pub mod keys {
     pub const OPTION_ENABLE_HWCODEC: &str = "enable-hwcodec";
     pub const OPTION_APPROVE_MODE: &str = "approve-mode";
     pub const OPTION_VERIFICATION_METHOD: &str = "verification-method";
+    pub const OPTION_TEMPORARY_PASSWORD_LENGTH: &str = "temporary-password-length";
     pub const OPTION_CUSTOM_RENDEZVOUS_SERVER: &str = "custom-rendezvous-server";
     pub const OPTION_API_SERVER: &str = "api-server";
     pub const OPTION_KEY: &str = "key";
@@ -2492,7 +2505,7 @@ pub mod keys {
     pub const OPTION_HIDE_PROXY_SETTINGS: &str = "hide-proxy-settings";
     pub const OPTION_HIDE_REMOTE_PRINTER_SETTINGS: &str = "hide-remote-printer-settings";
     pub const OPTION_HIDE_WEBSOCKET_SETTINGS: &str = "hide-websocket-settings";
-    
+
     // Connection punch-through options
     pub const OPTION_ENABLE_UDP_PUNCH: &str = "enable-udp-punch";
     pub const OPTION_ENABLE_IPV6_PUNCH: &str = "enable-ipv6-punch";
@@ -2506,6 +2519,7 @@ pub mod keys {
     pub const OPTION_ALLOW_HTTPS_21114: &str = "allow-https-21114";
     pub const OPTION_ALLOW_HOSTNAME_AS_ID: &str = "allow-hostname-as-id";
     pub const OPTION_HIDE_POWERED_BY_ME: &str = "hide-powered-by-me";
+    pub const OPTION_MAIN_WINDOW_ALWAYS_ON_TOP: &str = "main-window-always-on-top";
 
     // flutter local options
     pub const OPTION_FLUTTER_REMOTE_MENUBAR_STATE: &str = "remoteMenubarState";
@@ -2532,6 +2546,7 @@ pub mod keys {
     pub const OPTION_KEEP_SCREEN_ON: &str = "keep-screen-on";
 
     pub const OPTION_DISABLE_GROUP_PANEL: &str = "disable-group-panel";
+    pub const OPTION_DISABLE_DISCOVERY_PANEL: &str = "disable-discovery-panel";
     pub const OPTION_PRE_ELEVATE_SERVICE: &str = "pre-elevate-service";
 
     // proxy settings
@@ -2600,6 +2615,7 @@ pub mod keys {
         OPTION_FLOATING_WINDOW_SVG,
         OPTION_KEEP_SCREEN_ON,
         OPTION_DISABLE_GROUP_PANEL,
+        OPTION_DISABLE_DISCOVERY_PANEL,
         OPTION_PRE_ELEVATE_SERVICE,
         OPTION_ALLOW_REMOTE_CM_MODIFICATION,
         OPTION_ALLOW_AUTO_RECORD_OUTGOING,
@@ -2638,6 +2654,7 @@ pub mod keys {
         OPTION_ENABLE_HWCODEC,
         OPTION_APPROVE_MODE,
         OPTION_VERIFICATION_METHOD,
+        OPTION_TEMPORARY_PASSWORD_LENGTH,
         OPTION_PROXY_URL,
         OPTION_PROXY_USERNAME,
         OPTION_PROXY_PASSWORD,
@@ -2677,9 +2694,9 @@ pub mod keys {
         OPTION_ALLOW_HOSTNAME_AS_ID,
         OPTION_REGISTER_DEVICE,
         OPTION_HIDE_POWERED_BY_ME,
+        OPTION_MAIN_WINDOW_ALWAYS_ON_TOP,
     ];
 }
-
 
 pub fn common_load<
     T: serde::Serialize + serde::de::DeserializeOwned + Default + std::fmt::Debug,
